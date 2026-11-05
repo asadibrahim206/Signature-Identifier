@@ -1,0 +1,16 @@
+# Build from a small allowlist, never the multi-gigabyte training workspace.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!uv.lock
+!app/
+!app/**
+!vendor/
+!vendor/**
+!signature_yolox/
+!signature_yolox/api_model/
+!signature_yolox/api_model/model.pth
+!signature_yolox/api_model/metadata.json
+**/__pycache__/
+**/*.pyc

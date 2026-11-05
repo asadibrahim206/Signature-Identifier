@@ -1,14 +1,14 @@
 # Signature Detection Using YOLOX-Tiny
 
-Project documentation and completed-run report, prepared **4 November 2026**.
+Project documentation and completed-run report, prepared **4 November 2026**; API and Docker instructions and completed container checks added **5 November 2026**.
 
-The executable workflow is [Signature_Detection_YOLOX_Tiny.ipynb](../Signature_Detection_YOLOX_Tiny.ipynb). This document describes its implementation and the user's completed local training and evaluation. Measurements come from saved notebook outputs, dataset manifests, audit records, training logs, and evaluation files. Preparing this document did not rerun preprocessing, training, or inference.
+The training workflow is [Signature_Detection_YOLOX_Tiny.ipynb](../Signature_Detection_YOLOX_Tiny.ipynb). Sections 1-14 describe its implementation and the user's completed local training and evaluation. Those measurements come from saved notebook outputs, dataset manifests, audit records, training logs, and evaluation files; preparing that report did not rerun preprocessing, training, or inference. [Section 15](#15-document-image-api-and-docker) documents the separate inference API and its local and container tests. Adding the API did not retrain the model or rerun the full evaluation.
 
 ## 1. Project purpose and completed result
 
 The system locates handwritten signatures within document images. Given an image, it predicts zero or more rectangular bounding boxes, the class `signature`, and a confidence score for each detection. It supports pages containing multiple signatures and pages with no annotated signatures.
 
-This is **signature detection**. It does not identify the signer, compare signatures against an enrolled reference, determine authenticity, detect forgery, or transcribe handwriting. PDF-to-image conversion, a deployment application, and production monitoring are outside the implemented notebook workflow.
+This is **signature detection**. It does not identify the signer, compare signatures against an enrolled reference, determine authenticity, detect forgery, or transcribe handwriting. The separate API now serves image predictions from the saved model. PDF-to-image conversion and production monitoring remain outside the implemented workflow.
 
 Three existing Roboflow COCO exports were inspected, cleaned, grouped to reduce leakage, and merged into a dataset containing **3,970 images and 7,859 signature boxes**. Official YOLOX-Tiny was initialized from pretrained COCO weights and trained locally for **30 total epochs**, including a resumed run after seven completed epochs.
 
@@ -609,3 +609,272 @@ Some notebook cells were revised after earlier preparation and therefore have cl
 | Test COCO annotations | `0eeb50261ea3282a90073a443080749ceea7059c82b4ffd8d265ad91f02810a9` |
 
 Technical behavior can be traced directly to the local [official Tiny experiment](../signature_yolox/YOLOX-0.3.0/exps/default/yolox_tiny.py), [base experiment](../signature_yolox/YOLOX-0.3.0/yolox/exp/yolox_base.py), [trainer](../signature_yolox/YOLOX-0.3.0/yolox/core/trainer.py), [COCO adapter](../signature_yolox/YOLOX-0.3.0/yolox/data/datasets/coco.py), and [detection head](../signature_yolox/YOLOX-0.3.0/yolox/models/yolo_head.py). The upstream repository is [Megvii-BaseDetection/YOLOX, tag 0.3.0](https://github.com/Megvii-BaseDetection/YOLOX/tree/0.3.0).
+
+## 15. Document image API and Docker
+
+### 15.1 What is included
+
+The FastAPI application in [app/](../app/) loads the saved model once at startup and exposes interactive **Swagger UI**. Upload a single document page to `POST /predict`; the response is a PNG of that page with red signature boxes and confidence labels. A page with no detections is returned without prediction markings. This is inference from the completed run, with no training or dataset preparation at startup.
+
+| File or directory | Purpose |
+|---|---|
+| [app/main.py](../app/main.py) | Swagger/OpenAPI, upload endpoint, request limits, health endpoint |
+| [app/detector.py](../app/detector.py) | Model loading, image decoding, YOLOX inference, PNG annotation |
+| [app/settings.py](../app/settings.py) | Environment-based runtime configuration |
+| [signature_yolox/api_model/model.pth](../signature_yolox/api_model/model.pth) | Bundled trained tensor-only state dictionary |
+| [signature_yolox/api_model/metadata.json](../signature_yolox/api_model/metadata.json) | Architecture, hashes, source checkpoint, and original test metrics |
+| [vendor/](../vendor/README.md) | Small Apache-licensed official YOLOX 0.3.0 runtime subset |
+| [pyproject.toml](../pyproject.toml), [uv.lock](../uv.lock) | Python dependencies and reproducible dependency lock |
+| [Dockerfile](../Dockerfile), [compose.yaml](../compose.yaml), [.dockerignore](../.dockerignore) | Container build and local service |
+| [tests/test_api.py](../tests/test_api.py) | Real-model API, validation, packaging, and image-processing checks |
+| [scripts/smoke_test.py](../scripts/smoke_test.py) | Test a running service and save a prediction PNG |
+| [scripts/prepare_runtime.py](../scripts/prepare_runtime.py) | One-time local export utility; not required to start the API |
+
+### 15.2 Saved model and files to include later
+
+The serving model was exported from the exact validation-selected `best_ckpt.pth` used for the test results above, at saved epoch **26**. The exporter removed optimizer and other training state, saved all **462** model tensors, reloaded them with `weights_only=True`, and verified every tensor equals the source checkpoint tensor. It did not quantize, retrain, or alter the trained parameters.
+
+| Serving artifact property | Value |
+|---|---|
+| Architecture | Official YOLOX-Tiny, depth 0.33, width 0.375, SiLU |
+| Classes | One: `signature` |
+| Network input | 416 x 416 |
+| State dictionary size | 20,320,443 bytes, approximately 19.38 MiB |
+| Serving weights SHA-256 | `98513e84254f881081954c719213cfd36a4ea00380fd4f75659037f945a0d5ad` |
+| Source full checkpoint SHA-256 | `9a0bef4d37c1b458ab5ab0b75d3ccb2c01fc7fc33692d1bc6e5399b56c7ad8f3` |
+
+The default confidence **0.25** and NMS IoU **0.65** match the reported operating point. Inference uses the original BGR, unnormalized 0-255 preprocessing with aspect-preserving resize and top-left placement on a 114-valued padded canvas. Boxes are scaled back to the original oriented image and clipped to its bounds. Objectness multiplied by class confidence is the displayed score. BatchNorm epsilon is explicitly set to the training experiment's `1e-3` because it is not stored as a state-dictionary tensor. At most 100 detections are drawn per page.
+
+[.gitignore](../.gitignore) now permits exactly these two files within the otherwise ignored training workspace:
+
+```text
+signature_yolox/api_model/model.pth
+signature_yolox/api_model/metadata.json
+```
+
+Keep both files, `app/`, `vendor/` including its license and manifest, dependency files, and container files when publishing later. Original datasets, full checkpoints, reports, prepared images, the full upstream source tree, virtual environments, and test prediction outputs remain ignored. The ignore rules are verified with Python `pathspec`; no Git commands were used for this task. No branch was committed or pushed.
+
+The Docker build uses an explicit file allowlist and does not copy the rest of `signature_yolox`. A fresh checkout containing the serving files needs neither `Datasets/` nor the training workspace. The local report links in Sections 1-14 refer to ignored training evidence and will only resolve where those local artifacts are present. The API itself does not depend on them. The original evaluation metrics in the metadata are historical results, not a new evaluation of the API.
+
+### 15.3 Start with Docker Desktop
+
+The successful build on this laptop used a dedicated builder to limit build-time RAM use. From the project root in PowerShell, create it **once**; skip this command if `docker buildx ls` already lists `signature-api-step1`:
+
+```powershell
+docker buildx create --name signature-api-step1 --driver docker-container --driver-opt memory=256m --driver-opt memory-swap=2g --driver-opt cpuset-cpus=0-1
+```
+
+Build and import the image, stop the builder to release its memory, then start the API:
+
+```powershell
+docker buildx build --builder signature-api-step1 --load --provenance=false --tag signature-detection-api:local .
+if ($LASTEXITCODE -ne 0) { throw "Docker image build failed." }
+docker buildx stop signature-api-step1
+docker compose up --no-build -d
+docker compose ps
+docker compose logs --tail 50 api
+```
+
+The builder is limited to **256 MiB of RAM**, **2 GiB combined RAM and swap**, and CPU cores 0-1. Swap availability depends on Docker Desktop's Linux VM. These limits apply to the build container, not the entire Docker Desktop VM. Keep some host RAM available by closing unused applications. The API's separate runtime limit is described below.
+
+The first build downloads the Python base image and locked dependencies, including CPU PyTorch. Later builds with the same builder reuse its cache. The model is bundled in the image; the running service does not download model weights or datasets. Stopping the builder preserves the cache for the next build.
+
+The image is **already built on this laptop**. For later starts without source changes:
+
+```powershell
+docker compose up --no-build -d
+```
+
+After changing the API, dependencies, vendored source, or model, repeat the build/import commands and then `docker compose up --no-build -d`. Compose replaces the container when the image changes. On a machine with sufficient memory, the usual `docker compose up --build -d` is also supported, but it does not use this dedicated builder's memory limits.
+
+Open **http://localhost:8000/docs** for Swagger UI, **http://localhost:8000/health** for model readiness, or **http://localhost:8000/openapi.json** for the schema. `/` redirects to `/docs`. Swagger's JavaScript/CSS are served from FastAPI's default CDN, so the browser needs internet access to render that UI; inference endpoints do not need that CDN.
+
+Compose binds the service to `127.0.0.1:8000`. It runs one worker with CPU inference, two PyTorch threads, a 2 GiB memory limit, and two CPUs. The container runs as a non-root user with a read-only root filesystem and a temporary `/tmp` mount for multipart uploads. The Docker health check calls `/health` and reports healthy after model startup.
+
+If port 8000 is occupied, use another host port:
+
+```powershell
+$env:PORT = "8001"
+docker compose up --no-build -d
+```
+
+Then open `http://localhost:8001/docs`. To stop and remove this project's service:
+
+```powershell
+docker compose down
+```
+
+If `docker` is not on the current PowerShell PATH, the installation on this laptop is accessible with:
+
+```powershell
+$docker = "$env:LOCALAPPDATA\Programs\DockerDesktop\resources\bin\docker.exe"
+& $docker compose up --no-build -d
+```
+
+Use `& $docker` in place of `docker` for the other commands in that shell.
+
+### 15.4 Start locally with uv
+
+Use a separate terminal and stop Docker's service first if it uses the same port:
+
+```powershell
+uv sync --frozen
+uv run --frozen uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+The project requires Python **3.12**. uv creates an isolated `.venv` and installs the lockfile's CPU dependencies without changing the notebook's environment. If needed, install the managed interpreter first with `uv python install 3.12`. On this laptop uv is also accessible as `& "$env:USERPROFILE\.local\bin\uv.exe"` if it is absent from PATH. Stop the local server with **Ctrl+C**.
+
+The default local and Docker installations use CPU-only PyTorch wheels. Your RTX 3060 is not required for this API. `SIGNATURE_DEVICE=cuda` only works in a separately configured environment with compatible CUDA PyTorch/torchvision binaries; the provided Docker image and Compose file do not configure GPU access. Avoid increasing worker count casually: each worker loads a separate model.
+
+### 15.5 Test in Swagger UI
+
+1. Open **http://localhost:8000/docs** after startup.
+2. Expand **POST /predict** under **Detection**.
+3. Select **Try it out**.
+4. Keep `confidence=0.25` and `nms_iou=0.65` initially.
+5. Use **Choose File** for the required `file` field and select a document image.
+6. Select **Execute**. A successful response has HTTP **200**, `content-type: image/png`, and the annotated document image in the response body. Use the response image/download control to save it.
+7. Check `x-detection-count` and `x-inference-time-ms` in the response headers. Try a signature-free page as well.
+
+Increasing confidence tends to retain fewer predictions; lowering it can retain more weak detections. NMS IoU controls overlap suppression. These parameters change the operating point, so the original test precision/recall numbers should not be assumed for other settings.
+
+### 15.6 Test with curl, Python, or the smoke script
+
+**PowerShell / Windows curl** (replace the example image path):
+
+```powershell
+curl.exe --fail --request POST "http://localhost:8000/predict?confidence=0.25&nms_iou=0.65" --form "file=@C:/path/to/document.jpg" --dump-header - --output prediction.png
+```
+
+The body is binary PNG, not JSON or a base64 string. Open `prediction.png` to inspect it. Use `curl` instead of `curl.exe` on Linux/macOS. `--fail` returns a nonzero exit code for an HTTP error rather than saving a JSON error as a prediction image.
+
+**Python** (the development environment already includes httpx):
+
+```python
+from pathlib import Path
+import httpx
+
+with Path("document.jpg").open("rb") as image:
+    response = httpx.post(
+        "http://127.0.0.1:8000/predict",
+        params={"confidence": 0.25, "nms_iou": 0.65},
+        files={"file": ("document.jpg", image, "image/jpeg")},
+        timeout=120,
+        trust_env=False,
+    )
+response.raise_for_status()
+Path("prediction.png").write_bytes(response.content)
+print("Signatures:", response.headers["X-Detection-Count"])
+```
+
+**Automated smoke test against the running local or Docker service:**
+
+```powershell
+uv run --frozen python scripts/smoke_test.py --image "C:/path/to/document.jpg" --output .artifacts/prediction.png
+```
+
+The script checks model readiness, Swagger HTML, the OpenAPI response type, a real prediction, invalid-file rejection, and empty-upload rejection. It saves the returned PNG and prints its dimensions, detection count, inference time, and model hash. Omit `--image` to generate a blank test page; that checks the plumbing but does not establish detection quality. For another port, add `--url http://127.0.0.1:8001`. `.artifacts/` is ignored.
+
+### 15.7 API contract and limits
+
+| Endpoint | Method | Result |
+|---|---|---|
+| `/` | GET | Redirect to Swagger UI |
+| `/docs` | GET | Interactive Swagger UI |
+| `/openapi.json` | GET | OpenAPI schema |
+| `/health` | GET | JSON readiness, device, model hash, input size, upload limits |
+| `/predict` | POST | Annotated PNG from multipart field `file` |
+
+`confidence` and `nms_iou` are optional query parameters, each in **[0.01, 1.0]**. The default values are 0.25 and 0.65. Headers on a successful prediction are:
+
+| Header | Meaning |
+|---|---|
+| `Content-Type: image/png` | Response encoding, regardless of the input format |
+| `Content-Disposition: inline; filename="prediction.png"` | Suggested filename |
+| `X-Detection-Count` | Number of rendered detections |
+| `X-Inference-Time-Ms` | Network forward pass and NMS; excludes upload, preprocessing, coordinate restoration, drawing, and PNG encoding |
+| `X-Image-Width`, `X-Image-Height` | Returned image dimensions |
+| `Cache-Control: no-store` | Request clients/proxies not to cache the prediction |
+
+Supported inputs are **JPEG, PNG, WEBP, BMP, and single-page TIFF**. The server examines decoded contents rather than trusting filenames. EXIF orientation is applied before inference; the output preserves those oriented dimensions. Transparent inputs are composited onto white. Metadata is not copied into the returned PNG. PDF, animated images, and multipage TIFF are not accepted; rasterize a PDF and submit one page per request.
+
+The default file limit is **20 MiB**, with an additional 256 KiB allowance for the multipart envelope. A decoded image may contain at most **40,000,000 pixels**. File contents are used only for the request and are not saved as application artifacts; the multipart library may temporarily spool larger uploads into the OS/container temporary directory. Inference is serialized within the worker to bound model memory usage and protect YOLOX's internal grid cache.
+
+| HTTP status | Meaning |
+|---|---|
+| 200 | Valid annotated PNG, including zero detections |
+| 400 | Empty file or malformed request |
+| 413 | Uploaded body/file or decoded image is too large |
+| 415 | File contents are unsupported, corrupt, or unreadable |
+| 422 | Missing file, invalid query parameter, or multiple image frames/pages |
+| 503 | Model inference encountered an unavailable resource; inspect server logs |
+
+### 15.8 Configuration and troubleshooting
+
+Compose reads shell environment variables or a root `.env` file. Copy [.env.example](../.env.example) to `.env` if persistent overrides are needed; `.env` is ignored. For local uv execution, set environment variables in PowerShell before starting Uvicorn; it does not automatically read `.env`.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PORT` | `8000` | Compose host port; for local Uvicorn use `--port` |
+| `SIGNATURE_DEVICE` | `cpu` | `cpu`, `cuda`, or `auto`; bundled dependencies support CPU |
+| `SIGNATURE_TORCH_THREADS` | `2` | Positive PyTorch CPU thread count |
+| `SIGNATURE_MAX_UPLOAD_MB` | `20` | Positive upload limit in MiB |
+| `SIGNATURE_MAX_IMAGE_PIXELS` | `40000000` | Maximum decoded image area |
+| `SIGNATURE_MODEL_PATH` | `signature_yolox/api_model/model.pth` relative to project root | Local server override for weights |
+| `SIGNATURE_MODEL_METADATA` | `metadata.json` next to weights | Local server override for metadata |
+
+The last two settings are intended for local execution or a custom container with matching files mounted/configured; the supplied Compose file always uses its bundled weights. Startup checks architecture and SHA-256, then loads the state dictionary strictly and warms up the network. Missing or mismatched model files therefore prevent readiness rather than silently using another model. Restore the matching weights and metadata if startup reports a checksum mismatch.
+
+For connection errors, inspect `docker compose ps` and `docker compose logs --tail 50 api`; allow startup to finish and verify the host port. For an empty prediction, check the returned detection count, input orientation/quality, and confidence threshold. For 413, resize the source page or adjust the documented limits and restart the service. The service is configured for local access; no authentication layer is included.
+
+### 15.9 Verification
+
+Run the real-model test suite and lint checks without starting a web server:
+
+```powershell
+uv run --frozen pytest -q
+uv run --frozen ruff check app scripts tests
+uv run --frozen ruff format --check app scripts tests
+```
+
+Tests exercise the actual exported model, the OpenAPI contract, output dimensions, invalid and oversized uploads including streamed bodies, image orientation, transparency, multipage rejection, box scaling/clipping, annotation, and ignore patterns. A separate subprocess loads the model from a temporary copy containing only `app/`, `vendor/`, and the two serving artifacts, proving the full training workspace is unnecessary. Container smoke tests complement these checks with actual HTTP requests.
+
+### 15.10 Completed container checks: 5 November 2026
+
+The earlier automated suite completed with **16 tests passed**, and lint/format checks passed. After rebuilding and importing the Docker image, the packaged contents were checked against the workspace: all **22 runtime files**, including the weights and metadata, matched by SHA-256. The service runs as UID **10001**. Its container, `signatureidentifier-api-1`, reached **healthy**, with Uvicorn reporting completed model startup and listening on host `127.0.0.1:8000`. The build container was stopped after the import.
+
+The following checks used real HTTP requests to that running container, rather than a second host-side model:
+
+| Check | Observed result |
+|---|---|
+| `GET /health` | 200; `ready`, CPU device, expected model SHA-256 |
+| `GET /` | 307 redirect to `/docs` |
+| `GET /docs` | 200; Swagger HTML served |
+| `GET /openapi.json` | 200; required multipart `file`, PNG response, confidence 0.25 and NMS IoU 0.65 defaults |
+| Swagger UI JavaScript and CSS URLs | Both returned 200 |
+| Held-out document upload | 200 PNG, **1190 x 1683**, **9 detections** |
+| Generated blank page upload | 200 PNG, **800 x 1000**, **0 detections**; all pixels stayed white |
+| Non-image upload | 415 |
+| Empty upload | 400 |
+| Missing upload | 422 |
+| `confidence=2` | 422 |
+
+The running schema is OpenAPI 3.1: the required `file` property uses `type: string` and `contentMediaType: application/octet-stream`. This is binary-content metadata as described in the [OpenAPI 3.1 specification](https://swagger.io/specification/v3.1/); it need not use the older `format: binary` spelling.
+
+The held-out document was test image **4**, `03948b6b0fd104336ad6a26c.png`. Its original saved evaluation has nine annotated signatures and nine matched predictions. The API returned the same detection count. Visual inspection of its PNG confirmed nine red boxes at the visible signatures and preserved original page dimensions. Nearby confidence labels can overlap where signatures are close together. This check did not recompute box-matching metrics or rerun the 397-image evaluation, so it does not establish a new AP/precision/recall result.
+
+The observed `X-Inference-Time-Ms` values were **297.01 ms** for that document and **125.49 ms** for the blank page, with CPU inference and two PyTorch threads. These are individual network-forward/NMS observations, not complete request latency or a throughput benchmark. They exclude image preprocessing and output rendering/encoding.
+
+Swagger's HTML, schema, and CDN assets were checked over HTTP. An interactive browser click-through could not be recorded because the verification environment's browser connection referenced a missing plugin module. Actual multipart document uploads and binary responses were tested successfully through the running container. The manual Swagger steps remain in Section 15.5.
+
+Local evidence is saved under the ignored `.artifacts/` directory:
+
+| Local artifact | Contents |
+|---|---|
+| `.artifacts/docker-prediction.png` | Visually inspected nine-detection output |
+| `.artifacts/docker-blank-prediction.png` | Unmarked blank-page output |
+| `.artifacts/docker-smoke-result.json` | Document smoke-test output, model hash, count, dimensions, inference time |
+| `.artifacts/docker-blank-result.json` | Blank-page smoke-test output |
+| `.artifacts/container-verification.json` | Endpoint/schema/assets checks and combined smoke results |
+
+These files are local test evidence and are not required to run the API. Use the commands in Section 15.6 to generate new predictions. No model training, full-dataset evaluation, Git commands, commits, or pushes were performed for this API verification.

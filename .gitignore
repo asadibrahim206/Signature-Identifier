@@ -1,3 +1,20 @@
-.gitignore
 Datasets/
-signature_yolox/
+
+# Keep training data, reports, checkpoints, and the source archive local.
+signature_yolox/*
+!signature_yolox/api_model/
+signature_yolox/api_model/*
+!signature_yolox/api_model/model.pth
+!signature_yolox/api_model/metadata.json
+
+.venv/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.artifacts/
+.env
+.env.*
+!.env.example
+*.before_*.ipynb
