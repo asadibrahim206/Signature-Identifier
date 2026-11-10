@@ -2,6 +2,10 @@
 
 Detect handwritten signatures in document images with the trained official YOLOX-Tiny model. The API returns a PNG of the uploaded page with signature boxes and confidence labels.
 
+## Deploy with GitHub Actions
+
+The [CI/CD setup guide](docs/github-actions-deployment.md) explains how GitHub tests and builds the API, publishes the tested image to GHCR, and deploys it to this Windows laptop through a self-hosted runner. Follow its browser setup steps after pushing the new workflow and deployment files. Deployment stays disabled until you configure the repository variables and runner.
+
 ## Run with Docker
 
 From this directory, with Docker Desktop running, build with the memory-limited builder used on this laptop. Create the builder only once; **skip the first command if `signature-api-step1` already exists** (it does on this laptop).

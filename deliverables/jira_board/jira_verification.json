@@ -1,0 +1,294 @@
+{
+  "verifiedOn": "2026-11-09",
+  "site": "https://bokhariadil.atlassian.net",
+  "project": {
+    "key": "SCRUM",
+    "id": "10000",
+    "name": "My Software Team",
+    "style": "team-managed"
+  },
+  "import": {
+    "created": 20,
+    "reused": 0,
+    "done": 19,
+    "toDo": 1,
+    "labels": [
+      "signature-identifier"
+    ],
+    "verifiedFields": [
+      "localReference",
+      "summary",
+      "acceptanceCriteria",
+      "issueType",
+      "labels",
+      "priority",
+      "assignee",
+      "status"
+    ],
+    "assignees": "Unassigned",
+    "history": "Created and transitioned on import; no historical dates invented."
+  },
+  "duplicateCheck": {
+    "beforeImport": {
+      "projectIssues": 4,
+      "matchingIssues": 0,
+      "visibleBoards": [
+        "SCRUM board (ID 1)"
+      ],
+      "visibleSavedFilters": 0,
+      "labelMatchesAcrossSite": 0
+    },
+    "method": "Compared all SCRUM summaries and descriptions against local references and backlog titles; also searched label across site."
+  },
+  "requestedBoard": {
+    "name": "Signature Identifier",
+    "type": "kanban",
+    "id": 2,
+    "url": "https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2",
+    "status": "Created; column configuration correction pending",
+    "reason": "Verified 9 November 2026: Signature Identifier Kanban board ID 2 exists at https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2, with saved filter 10001. The board API returns all 20 tasks SCRUM-5 through SCRUM-24; 19 are Done and SCRUM-24 remains To Do. Configuration correction remains: In Review status currently maps to In Progress; the empty In Review column follows Done. Map In Review to its own column and position it before Done, then verify browser visibility and completed-task retention before completing SCRUM-24. This local documentation update does not change Jira configuration or statuses.",
+    "locationType": "user",
+    "columns": [
+      {
+        "name": "Backlog",
+        "statuses": []
+      },
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10000",
+            "name": "To Do",
+            "category": "new"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "name": "In Progress",
+            "category": "indeterminate"
+          },
+          {
+            "id": "10001",
+            "name": "In Review",
+            "category": "indeterminate"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10002",
+            "name": "Done",
+            "category": "done"
+          }
+        ]
+      },
+      {
+        "name": "In Review",
+        "statuses": []
+      }
+    ],
+    "importedTasksReturnedByBoardApi": 20,
+    "interactiveVisibilityVerified": false
+  },
+  "savedFilter": {
+    "id": "10001",
+    "created": true,
+    "jql": "project = \"SCRUM\" AND labels = \"signature-identifier\" ORDER BY Rank ASC",
+    "name": "Signature Identifier"
+  },
+  "existingBoard": {
+    "id": 1,
+    "name": "SCRUM board",
+    "type": "simple",
+    "modified": false,
+    "columns": [
+      "To Do",
+      "In Progress",
+      "In Review",
+      "Done"
+    ],
+    "importedTasksReturnedByBoardApi": 20,
+    "interactiveVisibilityVerified": false
+  },
+  "issuesUrl": "https://bokhariadil.atlassian.net/issues?jql=project%20%3D%20%22SCRUM%22%20AND%20labels%20%3D%20%22signature-identifier%22%20ORDER%20BY%20key%20ASC",
+  "issues": [
+    {
+      "localReference": "SD001",
+      "key": "SCRUM-5",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-5",
+      "summary": "Audit three local datasets",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD002",
+      "key": "SCRUM-6",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-6",
+      "summary": "Clean images and bounding boxes",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD003",
+      "key": "SCRUM-7",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-7",
+      "summary": "Create related-image grouped splits",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD004",
+      "key": "SCRUM-8",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-8",
+      "summary": "Configure single-class YOLOX-Tiny",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD005",
+      "key": "SCRUM-9",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-9",
+      "summary": "Optimize training for the RTX 3060 laptop",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD006",
+      "key": "SCRUM-10",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-10",
+      "summary": "Complete training and select the checkpoint",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD007",
+      "key": "SCRUM-11",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-11",
+      "summary": "Evaluate the untouched test split",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD008",
+      "key": "SCRUM-12",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-12",
+      "summary": "Document data, training and results",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD009",
+      "key": "SCRUM-13",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-13",
+      "summary": "Package the serving model",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD010",
+      "key": "SCRUM-14",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-14",
+      "summary": "Implement annotated-image prediction",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD011",
+      "key": "SCRUM-15",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-15",
+      "summary": "Expose Swagger and health endpoints",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD012",
+      "key": "SCRUM-16",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-16",
+      "summary": "Validate and bound uploaded images",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD013",
+      "key": "SCRUM-17",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-17",
+      "summary": "Dockerize the prediction service",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD014",
+      "key": "SCRUM-18",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-18",
+      "summary": "Run API regression checks",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD015",
+      "key": "SCRUM-19",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-19",
+      "summary": "Verify the packaged Docker model",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD016",
+      "key": "SCRUM-20",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-20",
+      "summary": "Demonstrate held-out image prediction",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD017",
+      "key": "SCRUM-21",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-21",
+      "summary": "Document API setup and testing",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD018",
+      "key": "SCRUM-22",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-22",
+      "summary": "Prepare the two-slide presentation",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD019",
+      "key": "SCRUM-23",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-23",
+      "summary": "Prepare the architecture diagram",
+      "status": "Done",
+      "priority": "Medium"
+    },
+    {
+      "localReference": "SD020",
+      "key": "SCRUM-24",
+      "url": "https://bokhariadil.atlassian.net/browse/SCRUM-24",
+      "summary": "Create the live Jira board",
+      "status": "To Do",
+      "priority": "High"
+    }
+  ],
+  "csv": {
+    "file": "jira_import.csv",
+    "state": "Archive after API import; do not re-import"
+  },
+  "gitCommandsRun": false,
+  "documentationUpdate": {
+    "verifiedOn": "2026-11-09",
+    "jiraOperations": "read-only",
+    "remoteConfigurationChanged": false,
+    "remoteIssueStatusesChanged": false,
+    "gitCommandsRun": false
+  }
+}

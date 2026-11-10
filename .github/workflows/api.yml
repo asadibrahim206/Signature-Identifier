@@ -1,0 +1,212 @@
+name: API CI and laptop deployment
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - '.github/workflows/api.yml'
+      - 'app/**'
+      - 'vendor/**'
+      - 'signature_yolox/api_model/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'deploy/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.gitignore'
+      - '.python-version'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/api.yml'
+      - 'app/**'
+      - 'vendor/**'
+      - 'signature_yolox/api_model/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'deploy/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.gitignore'
+      - '.python-version'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signature-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Test, build and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.publish.outputs.image }}
+      model_sha256: ${{ steps.model.outputs.sha256 }}
+    env:
+      SIGNATURE_DEVICE: cpu
+      SIGNATURE_TORCH_THREADS: '2'
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv and select Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: '0.13.0'
+          python-version: '3.12'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Install locked dependencies
+        run: uv sync --frozen
+
+      - name: Verify the packaged model
+        id: model
+        shell: bash
+        run: |
+          uv run --frozen python - <<'PY'
+          import hashlib, json, os, re
+          from pathlib import Path
+          root = Path('signature_yolox/api_model')
+          metadata = json.loads((root / 'metadata.json').read_text())
+          digest = hashlib.sha256((root / 'model.pth').read_bytes()).hexdigest()
+          assert re.fullmatch(r'[a-f0-9]{64}', metadata['weights_sha256'])
+          assert digest == metadata['weights_sha256'], 'Model is missing or differs from metadata'
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'sha256={digest}\n')
+          PY
+
+      - name: Check Python formatting and lint
+        run: |
+          uv run --frozen ruff check app scripts tests
+          uv run --frozen ruff format --check app scripts tests
+
+      - name: Run API tests with the saved model
+        run: uv run --frozen pytest -q
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+      - name: Build the CPU image on GitHub
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: signature-detection-api:ci
+          provenance: false
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test the actual Docker image
+        shell: bash
+        run: |
+          docker run --detach --name signature-api-ci \
+            --publish 127.0.0.1:8000:8000 --memory 2g --cpus 2 \
+            --read-only --tmpfs /tmp:size=128m,mode=1777 --init \
+            --cap-drop ALL --security-opt no-new-privileges:true \
+            signature-detection-api:ci
+          ready=false
+          for attempt in {1..90}; do
+            if curl --fail --silent http://127.0.0.1:8000/health > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != true ]]; then
+            docker logs signature-api-ci
+            exit 1
+          fi
+          uv run --frozen python scripts/smoke_test.py \
+            --url http://127.0.0.1:8000 --output .artifacts/ci-prediction.png
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the image that passed the smoke test
+        id: publish
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          repository="ghcr.io/${GITHUB_REPOSITORY,,}"
+          tag="$repository:sha-$GITHUB_SHA"
+          docker tag signature-detection-api:ci "$tag"
+          docker push "$tag"
+          image=$(docker image inspect "$tag" --format '{{index .RepoDigests 0}}')
+          if [[ ! "$image" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]]; then
+            echo 'Could not resolve the published image digest.' >&2
+            exit 1
+          fi
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          {
+            echo '### Tested container published'
+            echo "Image tag: \`$tag\`"
+            echo "Deployment image: \`$image\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Show container logs after a failure
+        if: failure()
+        run: docker logs signature-api-ci || true
+
+      - name: Remove the temporary CI container
+        if: always()
+        run: docker rm --force signature-api-ci || true
+
+  deploy:
+    name: Deploy to Windows laptop
+    needs: build
+    if: >-
+      github.event_name != 'pull_request' &&
+      vars.DEPLOY_ENABLED == 'true' &&
+      vars.DEPLOY_BRANCH != '' &&
+      github.ref == format('refs/heads/{0}', vars.DEPLOY_BRANCH)
+    runs-on: [self-hosted, Windows, X64, signature-laptop]
+    timeout-minutes: 15
+    concurrency:
+      group: signature-laptop-deployment
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Check out deployment files only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: deploy
+
+      - name: Pull, deploy and verify the tested image
+        shell: powershell
+        env:
+          SIGNATURE_IMAGE: ${{ needs.build.outputs.image }}
+          EXPECTED_MODEL_SHA256: ${{ needs.build.outputs.model_sha256 }}
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '8000' }}
+          DOCKER_EXE: ${{ vars.DOCKER_EXE }}
+        run: |
+          .\deploy\deploy-laptop.ps1 -Image $env:SIGNATURE_IMAGE `
+            -ExpectedModelSha256 $env:EXPECTED_MODEL_SHA256 -Port ([int]$env:DEPLOY_PORT)

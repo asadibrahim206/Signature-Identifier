@@ -1,6 +1,10 @@
 # Signature Detection Using YOLOX-Tiny
 
+For automated API testing, container publishing and deployment to the Windows laptop, see the [GitHub Actions CI/CD guide](github-actions-deployment.md), added **10 November 2026**. It includes the files to push and the browser steps for registering a self-hosted runner and configuring deployment.
+
 Project documentation and completed-run report, prepared **4 November 2026**; API and Docker instructions and completed container checks added **5 November 2026**.
+
+The [submission deliverables](../deliverables/README.md), prepared **9 November 2026**, contain the two-slide presentation, architecture diagram and Jira package in separate folders. The [live Signature Identifier Kanban board](https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2) is verified as board ID 2 with saved filter 10001. Its board API returns all 20 imported tasks in My Software Team (SCRUM), SCRUM-5 through SCRUM-24; 19 are Done and SCRUM-24 remains To Do. Board configuration still needs correction: map In Review to its own column and put Done last. See [Jira results and issue mapping](../deliverables/jira_board/README.md). The CSV is an archive after import and must not be re-imported.
 
 The training workflow is [Signature_Detection_YOLOX_Tiny.ipynb](../Signature_Detection_YOLOX_Tiny.ipynb). Sections 1-14 describe its implementation and the user's completed local training and evaluation. Those measurements come from saved notebook outputs, dataset manifests, audit records, training logs, and evaluation files; preparing that report did not rerun preprocessing, training, or inference. [Section 15](#15-document-image-api-and-docker) documents the separate inference API and its local and container tests. Adding the API did not retrain the model or rerun the full evaluation.
 

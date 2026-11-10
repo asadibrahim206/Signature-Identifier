@@ -1,0 +1,101 @@
+﻿"Archive Notice","Jira Key","Local Reference","Summary","Issue Type","Description","Status","Priority","Labels"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-5","SD001","Audit three local datasets","Task","Local reference: SD001
+Workstream: Data
+Acceptance criteria: Confirm dataset counts and categories; record all image and bounding-box totals.
+Evidence / current state: docs/README.md; 3,970 images and 7,859 boxes
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-6","SD002","Clean images and bounding boxes","Task","Local reference: SD002
+Workstream: Data
+Acceptance criteria: Export RGB images; validate and repair bounding boxes; retain valid negative pages.
+Evidence / current state: docs/README.md; Signature_Detection_YOLOX_Tiny.ipynb saved outputs
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-7","SD003","Create related-image grouped splits","Task","Local reference: SD003
+Workstream: Data
+Acceptance criteria: Group related images before seed-42 splitting and check for group crossing.
+Evidence / current state: docs/README.md; train 3176 / validation 397 / test 397
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-8","SD004","Configure single-class YOLOX-Tiny","Task","Local reference: SD004
+Workstream: Model
+Acceptance criteria: Use official YOLOX-Tiny architecture with a single signature category and COCO transfer.
+Evidence / current state: Signature_Detection_YOLOX_Tiny.ipynb; vendor/yolox
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-9","SD005","Optimize training for the RTX 3060 laptop","Task","Local reference: SD005
+Workstream: Model
+Acceptance criteria: Train with 416 input, batch 8 and AMP within the 6 GB GPU configuration.
+Evidence / current state: docs/README.md; recorded training settings
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-10","SD006","Complete training and select the checkpoint","Task","Local reference: SD006
+Workstream: Model
+Acceptance criteria: Complete 30 total epochs and select the best checkpoint using validation.
+Evidence / current state: docs/README.md; best saved epoch 26
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-11","SD007","Evaluate the untouched test split","Task","Local reference: SD007
+Workstream: Evaluation
+Acceptance criteria: Report AP and confidence-threshold precision, recall and F1 on 397 test images.
+Evidence / current state: signature_yolox/reports/evaluation_test/metrics.json; mAP50 95.03%, mAP50:95 65.51%
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-12","SD008","Document data, training and results","Task","Local reference: SD008
+Workstream: Documentation
+Acceptance criteria: Explain dataset provenance, cleaning, training, evaluation and limitations.
+Evidence / current state: docs/README.md
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-13","SD009","Package the serving model","Task","Local reference: SD009
+Workstream: API
+Acceptance criteria: Export tensor-only weights and metadata; verify the model hash at startup.
+Evidence / current state: signature_yolox/api_model/model.pth; app/detector.py
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-14","SD010","Implement annotated-image prediction","Task","Local reference: SD010
+Workstream: API
+Acceptance criteria: Accept a multipart document image and return an annotated PNG at original oriented dimensions.
+Evidence / current state: app/main.py; app/detector.py; POST /predict
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-15","SD011","Expose Swagger and health endpoints","Task","Local reference: SD011
+Workstream: API
+Acceptance criteria: Provide interactive OpenAPI documentation and a readiness endpoint.
+Evidence / current state: GET /docs; GET /openapi.json; GET /health; app/main.py
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-16","SD012","Validate and bound uploaded images","Task","Local reference: SD012
+Workstream: API
+Acceptance criteria: Validate format, thresholds and dimensions; enforce upload limits and serialize processing.
+Evidence / current state: app/main.py; app/detector.py; tests
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-17","SD013","Dockerize the prediction service","Task","Local reference: SD013
+Workstream: Deployment
+Acceptance criteria: Package model and runtime code; run a non-root, read-only CPU service with resource limits.
+Evidence / current state: Dockerfile; compose.yaml; .dockerignore
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-18","SD014","Run API regression checks","Task","Local reference: SD014
+Workstream: Verification
+Acceptance criteria: Verify valid/invalid inputs and model-loading behavior with the automated suite.
+Evidence / current state: docs/README.md; prior verification 2026-11-05: 16 tests passed
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-19","SD015","Verify the packaged Docker model","Task","Local reference: SD015
+Workstream: Verification
+Acceptance criteria: Compare packaged runtime artifacts with the local files.
+Evidence / current state: .artifacts/container-verification.json; recorded 22-file SHA-256 comparison
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-20","SD016","Demonstrate held-out image prediction","Task","Local reference: SD016
+Workstream: Verification
+Acceptance criteria: Upload a held-out nine-signature image and a blank image; inspect returned predictions.
+Evidence / current state: .artifacts/docker-prediction.png; .artifacts/docker-blank-prediction.png; .artifacts/docker-smoke-result.json
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-21","SD017","Document API setup and testing","Task","Local reference: SD017
+Workstream: Documentation
+Acceptance criteria: Provide local and Docker startup, Swagger upload and command-line testing instructions.
+Evidence / current state: docs/README.md; README.md
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-22","SD018","Prepare the two-slide presentation","Task","Local reference: SD018
+Workstream: Submission
+Acceptance criteria: Deliver exactly two slides covering the system, data, training, evaluation and API architecture.
+Evidence / current state: deliverables/slide_deck/Signature_Detection.pptx; Signature_Detection.pdf
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-23","SD019","Prepare the architecture diagram","Task","Local reference: SD019
+Workstream: Submission
+Acceptance criteria: Show offline training, serving model packaging, online inference and response flow.
+Evidence / current state: deliverables/architecture_diagram/architecture.svg; architecture.dot; architecture.mmd
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","Done","Medium","signature-identifier"
+"ARCHIVE AFTER API IMPORT ON 2026-11-09 - DO NOT RE-IMPORT","SCRUM-24","SD020","Create the live Jira board","Task","Local reference: SD020
+Workstream: Submission
+Acceptance criteria: Connect Atlassian, verify access to My Software Team (SCRUM), import this backlog and configure the Kanban board.
+Evidence / current state: Verified 9 November 2026: Signature Identifier Kanban board ID 2 exists at https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2, with saved filter 10001. The board API returns all 20 tasks SCRUM-5 through SCRUM-24; 19 are Done and SCRUM-24 remains To Do. Configuration correction remains: In Review status currently maps to In Progress; the empty In Review column follows Done. Map In Review to its own column and position it before Done, then verify browser visibility and completed-task retention before completing SCRUM-24. This local documentation update does not change Jira configuration or statuses.
+Status basis: Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.","To Do","High","signature-identifier"

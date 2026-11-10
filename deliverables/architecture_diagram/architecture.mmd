@@ -1,0 +1,19 @@
+flowchart TB
+  subgraph offline[Offline: local datasets and GPU training]
+    D[Three COCO datasets: 3970 images / 7859 boxes] --> C[Audit, RGB export, box validation and repair; preserve negatives]
+    C --> S[Related-image grouped split: train 3176 / validation 397 / test 397]
+    S --> T[YOLOX-Tiny; COCO transfer; 416 input; 30 epochs; RTX 3060; AMP + EMA]
+    T --> V[Validation selection: best epoch 26; held-out test 397 images / 784 boxes]
+    V --> E[Export tensor-only model.pth and SHA-256 metadata: 20.3 MB]
+  end
+  U[User / Swagger UI: GET /docs] -->|multipart file and thresholds| A
+  subgraph serving[Online: Docker / FastAPI / Uvicorn]
+    A[POST /predict: validate file and thresholds] --> P[EXIF orientation, RGB to BGR, top-left letterbox 416]
+    P --> M[YOLOX-Tiny: CSPDarknet to PAFPN to decoupled head; CPU]
+    M --> N[Score filter and NMS; restore boxes; max 100 detections]
+    N --> I[Render annotated PNG at original oriented dimensions]
+    W[Bundled weights and metadata: verify and load once] -. startup .-> M
+    H[GET /health: readiness, device, model hash, limits]
+  end
+  E -. package at build time .-> W
+  I --> R[Client: PNG plus detection count and timing headers]

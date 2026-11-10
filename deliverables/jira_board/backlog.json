@@ -1,0 +1,379 @@
+{
+  "title": "Signature Identifier — delivery board",
+  "preparedOn": "2026-11-09",
+  "kind": "Local status snapshot of the live Signature Identifier Jira board; column correction remaining",
+  "statusBasis": "Jira statuses verified on 2026-11-09. Done reflects repository evidence and recorded checks, not historical Jira events. API checks are historical (2026-11-05); import transitions occurred on 2026-11-09.",
+  "columns": [
+    "To Do",
+    "In Progress",
+    "In Review",
+    "Done"
+  ],
+  "issues": [
+    {
+      "localReference": "SD001",
+      "summary": "Audit three local datasets",
+      "issueType": "Task",
+      "workstream": "Data",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Confirm dataset counts and categories; record all image and bounding-box totals.",
+      "evidence": "docs/README.md; 3,970 images and 7,859 boxes",
+      "jiraKey": "SCRUM-5",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-5"
+    },
+    {
+      "localReference": "SD002",
+      "summary": "Clean images and bounding boxes",
+      "issueType": "Task",
+      "workstream": "Data",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Export RGB images; validate and repair bounding boxes; retain valid negative pages.",
+      "evidence": "docs/README.md; Signature_Detection_YOLOX_Tiny.ipynb saved outputs",
+      "jiraKey": "SCRUM-6",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-6"
+    },
+    {
+      "localReference": "SD003",
+      "summary": "Create related-image grouped splits",
+      "issueType": "Task",
+      "workstream": "Data",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Group related images before seed-42 splitting and check for group crossing.",
+      "evidence": "docs/README.md; train 3176 / validation 397 / test 397",
+      "jiraKey": "SCRUM-7",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-7"
+    },
+    {
+      "localReference": "SD004",
+      "summary": "Configure single-class YOLOX-Tiny",
+      "issueType": "Task",
+      "workstream": "Model",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Use official YOLOX-Tiny architecture with a single signature category and COCO transfer.",
+      "evidence": "Signature_Detection_YOLOX_Tiny.ipynb; vendor/yolox",
+      "jiraKey": "SCRUM-8",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-8"
+    },
+    {
+      "localReference": "SD005",
+      "summary": "Optimize training for the RTX 3060 laptop",
+      "issueType": "Task",
+      "workstream": "Model",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Train with 416 input, batch 8 and AMP within the 6 GB GPU configuration.",
+      "evidence": "docs/README.md; recorded training settings",
+      "jiraKey": "SCRUM-9",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-9"
+    },
+    {
+      "localReference": "SD006",
+      "summary": "Complete training and select the checkpoint",
+      "issueType": "Task",
+      "workstream": "Model",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Complete 30 total epochs and select the best checkpoint using validation.",
+      "evidence": "docs/README.md; best saved epoch 26",
+      "jiraKey": "SCRUM-10",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-10"
+    },
+    {
+      "localReference": "SD007",
+      "summary": "Evaluate the untouched test split",
+      "issueType": "Task",
+      "workstream": "Evaluation",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Report AP and confidence-threshold precision, recall and F1 on 397 test images.",
+      "evidence": "signature_yolox/reports/evaluation_test/metrics.json; mAP50 95.03%, mAP50:95 65.51%",
+      "jiraKey": "SCRUM-11",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-11"
+    },
+    {
+      "localReference": "SD008",
+      "summary": "Document data, training and results",
+      "issueType": "Task",
+      "workstream": "Documentation",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Explain dataset provenance, cleaning, training, evaluation and limitations.",
+      "evidence": "docs/README.md",
+      "jiraKey": "SCRUM-12",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-12"
+    },
+    {
+      "localReference": "SD009",
+      "summary": "Package the serving model",
+      "issueType": "Task",
+      "workstream": "API",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Export tensor-only weights and metadata; verify the model hash at startup.",
+      "evidence": "signature_yolox/api_model/model.pth; app/detector.py",
+      "jiraKey": "SCRUM-13",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-13"
+    },
+    {
+      "localReference": "SD010",
+      "summary": "Implement annotated-image prediction",
+      "issueType": "Task",
+      "workstream": "API",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Accept a multipart document image and return an annotated PNG at original oriented dimensions.",
+      "evidence": "app/main.py; app/detector.py; POST /predict",
+      "jiraKey": "SCRUM-14",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-14"
+    },
+    {
+      "localReference": "SD011",
+      "summary": "Expose Swagger and health endpoints",
+      "issueType": "Task",
+      "workstream": "API",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Provide interactive OpenAPI documentation and a readiness endpoint.",
+      "evidence": "GET /docs; GET /openapi.json; GET /health; app/main.py",
+      "jiraKey": "SCRUM-15",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-15"
+    },
+    {
+      "localReference": "SD012",
+      "summary": "Validate and bound uploaded images",
+      "issueType": "Task",
+      "workstream": "API",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Validate format, thresholds and dimensions; enforce upload limits and serialize processing.",
+      "evidence": "app/main.py; app/detector.py; tests",
+      "jiraKey": "SCRUM-16",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-16"
+    },
+    {
+      "localReference": "SD013",
+      "summary": "Dockerize the prediction service",
+      "issueType": "Task",
+      "workstream": "Deployment",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Package model and runtime code; run a non-root, read-only CPU service with resource limits.",
+      "evidence": "Dockerfile; compose.yaml; .dockerignore",
+      "jiraKey": "SCRUM-17",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-17"
+    },
+    {
+      "localReference": "SD014",
+      "summary": "Run API regression checks",
+      "issueType": "Task",
+      "workstream": "Verification",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Verify valid/invalid inputs and model-loading behavior with the automated suite.",
+      "evidence": "docs/README.md; prior verification 2026-11-05: 16 tests passed",
+      "jiraKey": "SCRUM-18",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-18"
+    },
+    {
+      "localReference": "SD015",
+      "summary": "Verify the packaged Docker model",
+      "issueType": "Task",
+      "workstream": "Verification",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Compare packaged runtime artifacts with the local files.",
+      "evidence": ".artifacts/container-verification.json; recorded 22-file SHA-256 comparison",
+      "jiraKey": "SCRUM-19",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-19"
+    },
+    {
+      "localReference": "SD016",
+      "summary": "Demonstrate held-out image prediction",
+      "issueType": "Task",
+      "workstream": "Verification",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Upload a held-out nine-signature image and a blank image; inspect returned predictions.",
+      "evidence": ".artifacts/docker-prediction.png; .artifacts/docker-blank-prediction.png; .artifacts/docker-smoke-result.json",
+      "jiraKey": "SCRUM-20",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-20"
+    },
+    {
+      "localReference": "SD017",
+      "summary": "Document API setup and testing",
+      "issueType": "Task",
+      "workstream": "Documentation",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Provide local and Docker startup, Swagger upload and command-line testing instructions.",
+      "evidence": "docs/README.md; README.md",
+      "jiraKey": "SCRUM-21",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-21"
+    },
+    {
+      "localReference": "SD018",
+      "summary": "Prepare the two-slide presentation",
+      "issueType": "Task",
+      "workstream": "Submission",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Deliver exactly two slides covering the system, data, training, evaluation and API architecture.",
+      "evidence": "deliverables/slide_deck/Signature_Detection.pptx; Signature_Detection.pdf",
+      "jiraKey": "SCRUM-22",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-22"
+    },
+    {
+      "localReference": "SD019",
+      "summary": "Prepare the architecture diagram",
+      "issueType": "Task",
+      "workstream": "Submission",
+      "status": "Done",
+      "priority": "Medium",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Show offline training, serving model packaging, online inference and response flow.",
+      "evidence": "deliverables/architecture_diagram/architecture.svg; architecture.dot; architecture.mmd",
+      "jiraKey": "SCRUM-23",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-23"
+    },
+    {
+      "localReference": "SD020",
+      "summary": "Create the live Jira board",
+      "issueType": "Task",
+      "workstream": "Submission",
+      "status": "To Do",
+      "priority": "High",
+      "labels": [
+        "signature-identifier"
+      ],
+      "acceptanceCriteria": "Connect Atlassian, verify access to My Software Team (SCRUM), import this backlog and configure the Kanban board.",
+      "evidence": "Verified 9 November 2026: Signature Identifier Kanban board ID 2 exists at https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2, with saved filter 10001. The board API returns all 20 tasks SCRUM-5 through SCRUM-24; 19 are Done and SCRUM-24 remains To Do. Configuration correction remains: In Review status currently maps to In Progress; the empty In Review column follows Done. Map In Review to its own column and position it before Done, then verify browser visibility and completed-task retention before completing SCRUM-24. This local documentation update does not change Jira configuration or statuses.",
+      "jiraKey": "SCRUM-24",
+      "jiraUrl": "https://bokhariadil.atlassian.net/browse/SCRUM-24"
+    }
+  ],
+  "jira": {
+    "site": "https://bokhariadil.atlassian.net",
+    "projectKey": "SCRUM",
+    "importedOn": "2026-11-09",
+    "requestedBoardName": "Signature Identifier",
+    "boardId": 2,
+    "boardUrl": "https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2",
+    "boardStatus": "Created; column configuration correction pending",
+    "existingBoardId": 1,
+    "existingBoardName": "SCRUM board",
+    "issuesUrl": "https://bokhariadil.atlassian.net/issues?jql=project%20%3D%20%22SCRUM%22%20AND%20labels%20%3D%20%22signature-identifier%22%20ORDER%20BY%20key%20ASC",
+    "savedFilterId": "10001",
+    "savedFilterJql": "project = \"SCRUM\" AND labels = \"signature-identifier\" ORDER BY Rank ASC",
+    "csvState": "Archive after API import; do not re-import",
+    "verifiedOn": "2026-11-09",
+    "boardLocationType": "user",
+    "liveColumnConfiguration": [
+      {
+        "name": "Backlog",
+        "statuses": []
+      },
+      {
+        "name": "To Do",
+        "statuses": [
+          {
+            "id": "10000",
+            "name": "To Do",
+            "category": "new"
+          }
+        ]
+      },
+      {
+        "name": "In Progress",
+        "statuses": [
+          {
+            "id": "3",
+            "name": "In Progress",
+            "category": "indeterminate"
+          },
+          {
+            "id": "10001",
+            "name": "In Review",
+            "category": "indeterminate"
+          }
+        ]
+      },
+      {
+        "name": "Done",
+        "statuses": [
+          {
+            "id": "10002",
+            "name": "Done",
+            "category": "done"
+          }
+        ]
+      },
+      {
+        "name": "In Review",
+        "statuses": []
+      }
+    ],
+    "boardApiTaskCount": 20,
+    "interactiveVisibilityVerified": false,
+    "remainingSetup": "Verified 9 November 2026: Signature Identifier Kanban board ID 2 exists at https://bokhariadil.atlassian.net/secure/RapidBoard.jspa?rapidView=2, with saved filter 10001. The board API returns all 20 tasks SCRUM-5 through SCRUM-24; 19 are Done and SCRUM-24 remains To Do. Configuration correction remains: In Review status currently maps to In Progress; the empty In Review column follows Done. Map In Review to its own column and position it before Done, then verify browser visibility and completed-task retention before completing SCRUM-24. This local documentation update does not change Jira configuration or statuses."
+  }
+}

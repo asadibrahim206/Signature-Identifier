@@ -1,0 +1,22 @@
+# Deployment pulls an already tested image; it never builds on the laptop.
+services:
+  api:
+    image: ${SIGNATURE_IMAGE:?SIGNATURE_IMAGE must be a tested image digest}
+    ports:
+      - '127.0.0.1:${PORT:-8000}:8000'
+    environment:
+      SIGNATURE_DEVICE: cpu
+      SIGNATURE_TORCH_THREADS: '2'
+      SIGNATURE_MAX_UPLOAD_MB: '20'
+      SIGNATURE_MAX_IMAGE_PIXELS: '40000000'
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2g
+    cpus: 2.0

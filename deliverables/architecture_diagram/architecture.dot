@@ -1,0 +1,39 @@
+digraph SignatureIdentifier {
+  graph [rankdir=TB, newrank=true, bgcolor="white", fontname="Arial", fontsize=25, labelloc=t, label="Signature Identifier — training and prediction architecture", pad=.35, nodesep=.65, ranksep=.5, compound=true];
+  node [shape=box, style="filled", fillcolor="#F1F6FA", color="#65819A", fontname="Arial", fontsize=17, margin=".22,.14"];
+  edge [color="#47647C", arrowsize=.8, fontname="Arial", fontsize=13];
+  subgraph cluster_training {
+    label="OFFLINE · local datasets and GPU training"; color="#9CB2C4"; fontsize=21; margin=24;
+    data [label="Three local COCO datasets\n3,970 images · 7,859 boxes\nbondaruk / tech / rf100"];
+    clean [label="Audit and clean\nRGB PNG · validate / repair boxes\nretain 316 negative pages"];
+    split [label="Group related images before splitting\nTrain 3,176 · validation 397 · test 397\nseed 42 · no detected group crossing"];
+    train [label="YOLOX-Tiny · one signature class\nCOCO transfer · 416 × 416 · 30 epochs\nRTX 3060 6 GB · batch 8 · AMP + EMA"];
+    select [label="Select best checkpoint on validation\nSaved best epoch 26\nHeld-out test: 397 images / 784 boxes"];
+    export [label="Export serving weights + metadata\nTensor-only model.pth · 20.3 MB\nSHA-256 integrity metadata",fillcolor="#E3F2EC",color="#338163"];
+    data -> clean -> split -> train -> select -> export;
+  }
+  client [label="User / Swagger UI / HTTP client\nGET /docs · multipart image upload", fillcolor="#FFFFFF",color="#007E87"];
+  subgraph cluster_runtime {
+    label="ONLINE · Docker / FastAPI / Uvicorn"; color="#007E87"; fontsize=21; margin=24;
+    api [label="POST /predict\nValidate image + thresholds\n20 MiB file limit · 40 MP pixel limit",fillcolor="#E8F5F4",color="#007E87"];
+    preprocess [label="Decode → EXIF orientation → RGB → BGR\nAspect resize + top-left padding to 416 × 416\nSerial request processing lock"];
+    model [label="YOLOX-Tiny forward pass\nCSPDarknet → PAFPN → decoupled head\nCPU · one worker · two PyTorch threads"];
+    post [label="Filter scores → NMS → restore / clip boxes\nDefault confidence 0.25 · NMS IoU 0.65\nMaximum 100 detections"];
+    png [label="Draw signature boxes + confidence\nReturn image/png at oriented original size\nDetection count and timing headers"];
+    weights [label="Packaged model + metadata\nVerify SHA-256 and load once at startup\nNo training datasets required at runtime",fillcolor="#E3F2EC",color="#338163"];
+    health [label="GET /health\nReadiness, device, model hash, limits",shape=note,fillcolor="#FFFFFF"];
+    api -> preprocess -> model -> post -> png;
+    weights -> model [style=dotted,label="startup load",constraint=false,color="#338163"];
+    api -> health [style=dotted,arrowhead=none,label="also exposes",constraint=false];
+  }
+  result [label="Client receives annotated PNG\nRequest-local image processing; no image database",fillcolor="#FFFFFF",color="#007E87"];
+  client -> api [label="file + optional thresholds"];
+  png -> result;
+  export -> weights [style=dashed,label="package at build time",color="#338163",constraint=false];
+  {rank=same; data; client;}
+  {rank=same; clean; api;}
+  {rank=same; split; preprocess;}
+  {rank=same; train; model;}
+  {rank=same; select; post;}
+  {rank=same; export; png; weights;}
+}
